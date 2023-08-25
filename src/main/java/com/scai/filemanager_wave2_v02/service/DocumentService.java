@@ -59,6 +59,7 @@ public class DocumentService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        update(document.getId(), document);
     }
 
     public List<Document> findAll() {
@@ -152,4 +153,6 @@ public class DocumentService {
             throw new RuntimeException("Errore durante lo spostamento del documento", e);
         }
     }
+
+
 }
