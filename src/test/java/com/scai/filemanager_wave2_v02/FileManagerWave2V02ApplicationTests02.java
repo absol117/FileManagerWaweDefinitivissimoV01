@@ -15,6 +15,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 @SpringBootTest
@@ -48,6 +51,7 @@ public class FileManagerWave2V02ApplicationTests02 {
                 .build();
         User userL = userService.create(luca);
 
+        assertTrue(userService.findById(userL.getId()).isPresent());
 
         Document buildDoc = Document.builder()
                 .tags(List.of("allora", "vediamo"))
@@ -56,7 +60,12 @@ public class FileManagerWave2V02ApplicationTests02 {
 
         Document document = documentService.create(buildDoc);
 
+        assertTrue(documentService.findById(document.getId()).isPresent());
+
         userService.findById(userL.getId()).map(user -> user.getDocumentList().add(buildDoc));
+
+        Optional<Document> document1 = userService.findById(userL.getId()).map(user -> user.getDocumentList().get(0));
+        assertTrue(document1.isPresent());
 
     }
 
