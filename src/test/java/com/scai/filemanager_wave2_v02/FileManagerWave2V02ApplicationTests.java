@@ -90,9 +90,9 @@ class FileManagerWave2V02ApplicationTests {
 
         Document update = documentService.update(oldDoc.getId(), newDoc);
 
-        assertTrue(update.getId() == oldDoc.getId());
-        assertFalse(update.getName().equals(oldDoc.getName()));
-        assertFalse(update.getPath().equals(oldDoc.getPath()));
+        assertEquals(update.getId(), oldDoc.getId());
+        assertNotEquals(update.getName(), oldDoc.getName());
+        assertNotEquals(update.getPath(), oldDoc.getPath());
         assertTrue(update.getFile().exists());
 
 
@@ -113,18 +113,20 @@ class FileManagerWave2V02ApplicationTests {
 
         Document document = documentService.create(oldDoc);
 
-        Optional<Document> byId = documentService.findById(document.getId());
 
+        Optional<Document> byId = documentService.findById(document.getId());
 
 
         Document moveDoc = documentService.move(byId.get().getId(), pathDir.resolve("nuovoDocumento.txt").toString());
 
         assertTrue(moveDoc.getFile().exists());
         assertFalse(moveDoc.getPath().isBlank());
-        assertFalse(moveDoc.getName().equals(oldDoc.getName()));
-        assertTrue(moveDoc.getTags().equals(oldDoc.getTags()));
-        assertFalse(moveDoc.getPath().equals(oldDoc.getPath()));
-        assertFalse(moveDoc.getFile().equals(oldDoc.getFile()));
+        assertNotEquals(moveDoc.getName(), oldDoc.getName());
+        assertEquals(moveDoc.getTags(), oldDoc.getTags());
+        assertNotEquals(moveDoc.getPath(), oldDoc.getPath());
+        assertNotEquals(moveDoc.getFile(), oldDoc.getFile());
+
+        assertTrue(moveDoc.getPath().endsWith(".txt"));
 
 
     }
