@@ -48,18 +48,17 @@ public class DocumentService {
         if (byId.isEmpty()) {
             throw new RuntimeException("Errore: il doumento non è presente nel database");
         }
+
         Document document = byId.get();
         if (document.getPath().isBlank()) {
             throw new RuntimeException("Errore: il path non è presente nel documento");
         }
-        try {
-            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(document.getPath()));
+
+        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(document.getPath()))){
             bufferedWriter.write(content);
-            bufferedWriter.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        update(document.getId(), document);
     }
 
     public List<Document> findAll() {
@@ -74,8 +73,6 @@ public class DocumentService {
         if(document.getPath().isBlank()) {
             throw new RuntimeException("sei un coglione, il path è vuoto");
         }
-        File file = Path.of(document.getPath()).toFile();
-        document.setFile(file);
 
         if(Files.exists(Path.of(document.getPath()))) {
             try {
@@ -99,19 +96,22 @@ public class DocumentService {
         if(newDocumnet.getPath().isBlank()) {
             throw new RuntimeException("il path è vuoto brody");
         }
+
         if (findById(id).isEmpty()) {
             throw new RuntimeException("il file non è presente nel database");
         }
+
         Document document1 = findById(id).get();
         try {
             Files.delete(Path.of(document1.getPath()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
         document1.setName(newDocumnet.getName());
         document1.setTags(newDocumnet.getTags());
         document1.setPath(newDocumnet.getPath());
-        document1.setFile(newDocumnet.getFile());
+
         documentRepository.save(document1);
 
         try {
@@ -119,6 +119,7 @@ public class DocumentService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
         return document1;
     }
 
@@ -142,13 +143,16 @@ public class DocumentService {
         if (optionalDocument.isEmpty()) {
             throw new RuntimeException("Il documento non esiste nel database");
         }
+
         Document document = optionalDocument.get();
         String currentPath = document.getPath();
+
         try {
             Files.move(Paths.get(currentPath), Path.of(newPath), StandardCopyOption.REPLACE_EXISTING);
+
             document.setPath(newPath);
-            document.setFile(Path.of(newPath).toFile());
-            return update(id, document);
+
+            return documentRepository.save(document);
         } catch (IOException e) {
             throw new RuntimeException("Errore durante lo spostamento del documento", e);
         }

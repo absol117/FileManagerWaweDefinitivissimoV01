@@ -86,7 +86,6 @@ class FileManagerWave2V02ApplicationTests {
         newDoc.setName("LucaCapoSupremo.txt");
         newDoc.setTags(oldDoc.getTags());
         newDoc.setPath(pathDir.resolve("lucaCapo.txt").toString());
-        newDoc.setFile(pathDir.resolve("lucaCapo.txt").toFile());
 
         Document update = documentService.update(oldDoc.getId(), newDoc);
 
@@ -96,8 +95,7 @@ class FileManagerWave2V02ApplicationTests {
         assertTrue(update.getFile().exists());
 
 
-        documentService.update(oldDoc.getId(), newDoc);
-
+        documentService.delete(ris.getId());
     }
 
 
@@ -116,19 +114,19 @@ class FileManagerWave2V02ApplicationTests {
 
         Optional<Document> byId = documentService.findById(document.getId());
 
+        assertTrue(byId.isPresent());
 
-        Document moveDoc = documentService.move(byId.get().getId(), pathDir.resolve("nuovoDocumento.txt").toString());
+        Path target = pathDir.resolve("nuovoDocumento.txt");
+        Document moveDoc = documentService.move(byId.get().getId(), target.toString());
+
+        assertFalse(moveDoc.getPath().isBlank());
 
         assertTrue(moveDoc.getFile().exists());
-        assertFalse(moveDoc.getPath().isBlank());
-        assertNotEquals(moveDoc.getName(), oldDoc.getName());
-        assertEquals(moveDoc.getTags(), oldDoc.getTags());
-        assertNotEquals(moveDoc.getPath(), oldDoc.getPath());
-        assertNotEquals(moveDoc.getFile(), oldDoc.getFile());
-
         assertTrue(moveDoc.getPath().endsWith(".txt"));
 
+        assertTrue(moveDoc.getPath().endsWith("nuovoDocumento.txt"));
 
+        documentService.delete(byId.get().getId());
     }
 
 
@@ -137,19 +135,20 @@ class FileManagerWave2V02ApplicationTests {
 
         String content = "bucchina";
 
-        Document oldDoc = Document.builder()
+        Document document = Document.builder()
                 .tags(List.of("fabio", "gay", "ebreo"))
                 .name("fabioGay.txt")
                 .path(pathDir.resolve("FabioFibra.txt").toString())
                 .build();
 
-        Document document = documentService.create(oldDoc);
+        document = documentService.create(document);
 
         documentService.write(document.getId(), content);
 
         assertTrue(document.getFile().canWrite());
         assertTrue(document.getFile().length() > 2);
 
+        documentService.delete(document.getId());
     }
 
 
@@ -171,6 +170,8 @@ class FileManagerWave2V02ApplicationTests {
 
         assertTrue(document.getFile().canRead());
         assertTrue(document.getFile().length() > 2);
+
+        documentService.delete(document.getId());
     }
 
 
