@@ -16,7 +16,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "Documents")
+@Table(name = "documents")
 public class Document {
 
     @Id
@@ -33,5 +33,9 @@ public class Document {
 
     @Transient
     private File file;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User User_Id;
 
 }
