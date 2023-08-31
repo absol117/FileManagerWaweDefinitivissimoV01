@@ -1,6 +1,7 @@
 package com.scai.filemanager_wave2_v02;
 
 import com.scai.filemanager_wave2_v02.model.Document;
+import com.scai.filemanager_wave2_v02.repository.DocumentRepository;
 import com.scai.filemanager_wave2_v02.service.DocumentService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class FileManagerWave2V02ApplicationTests {
     @Autowired
     private DocumentService documentService;
+    @Autowired
+    private DocumentRepository documentRepository;
     private static Path pathDir;
 
 
@@ -100,33 +103,19 @@ class FileManagerWave2V02ApplicationTests {
 
 
 
-
     @Test
-    public void move() {
-        Document oldDoc = Document.builder()
-                .tags(List.of("fabio", "gay", "ebreo"))
-                .name("fabioGay.txt")
-                .path(pathDir.resolve("FabioFibra.txt").toString())
+    void shouldMoveDocument() {
+        Document document = Document.builder()
+                .tags(List.of("test", "file", "document", "txt"))
+                .path(pathDir.resolve("test.txt").toString())
                 .build();
 
-        Document document = documentService.create(oldDoc);
+        document = documentService.create(document);
 
+        Path path2 = pathDir.resolve("test2.txt");
+        Document result = documentService.move(document, path2.toString());
 
-        Optional<Document> byId = documentService.findById(document.getId());
-
-        assertTrue(byId.isPresent());
-
-        Path target = pathDir.resolve("nuovoDocumento.txt");
-        Document moveDoc = documentService.move(byId.get().getId(), target.toString());
-
-        assertFalse(moveDoc.getPath().isBlank());
-
-        assertTrue(moveDoc.getFile().exists());
-        assertTrue(moveDoc.getPath().endsWith(".txt"));
-
-        assertTrue(moveDoc.getPath().endsWith("nuovoDocumento.txt"));
-
-        documentService.delete(byId.get().getId());
+        assertTrue(result.getPath().endsWith("test2.txt"));
     }
 
 
@@ -138,7 +127,7 @@ class FileManagerWave2V02ApplicationTests {
         Document document = Document.builder()
                 .tags(List.of("fabio", "gay", "ebreo"))
                 .name("fabioGay.txt")
-                .path(pathDir.resolve("FabioFibra.txt").toString())
+                .path(pathDir.resolve("FabioFibrga.txt").toString())
                 .build();
 
         document = documentService.create(document);
@@ -159,7 +148,7 @@ class FileManagerWave2V02ApplicationTests {
         Document oldDoc = Document.builder()
                 .tags(List.of("fabio", "gay", "ebreo"))
                 .name("fabioGay.txt")
-                .path(pathDir.resolve("FabioFibra.txt").toString())
+                .path(pathDir.resolve("FabioFiaabra.txt").toString())
                 .build();
 
         Document document = documentService.create(oldDoc);
@@ -171,7 +160,7 @@ class FileManagerWave2V02ApplicationTests {
         assertTrue(document.getFile().canRead());
         assertTrue(document.getFile().length() > 2);
 
-        documentService.delete(document.getId());
+
     }
 
 

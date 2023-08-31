@@ -18,7 +18,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final DocumentRepository documentRepository;
     public User create(User user) {
-       return userRepository.save(user);
+        return userRepository.save(user);
     }
 
     public Optional<User> findById(int id) {

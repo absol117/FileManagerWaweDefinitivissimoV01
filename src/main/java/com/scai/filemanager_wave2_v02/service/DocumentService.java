@@ -3,6 +3,7 @@ package com.scai.filemanager_wave2_v02.service;
 import com.scai.filemanager_wave2_v02.model.Document;
 import com.scai.filemanager_wave2_v02.repository.DocumentRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -15,6 +16,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DocumentService {
 
     private final DocumentRepository documentRepository;
@@ -87,10 +89,26 @@ public class DocumentService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-         return documentRepository.save(document);
+        return documentRepository.save(document);
 
     }
 
+
+
+
+    public boolean delete(int id) {
+        if(findById(id).isEmpty()) {
+            throw new RuntimeException("Il documento non ha un id associato nel database");
+        }
+        Document document = findById(id).get();
+        try {
+            Files.deleteIfExists(Path.of(document.getPath()));
+            documentRepository.delete(document);
+            return true;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public Document update(int id, Document newDocumnet) {
         if(newDocumnet.getPath().isBlank()) {
@@ -123,40 +141,31 @@ public class DocumentService {
         return document1;
     }
 
-    public boolean delete(int id) {
-        if(findById(id).isEmpty()) {
-            throw new RuntimeException("Il documento non ha un id associato nel database");
-        }
-        Document document = findById(id).get();
-        try {
-            Files.deleteIfExists(Path.of(document.getPath()));
-            documentRepository.delete(document);
-            return true;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+
+    public Document move(Document document, String newPath) {
+        return documentRepository.findDocumentByPath(document.getPath())
+                .map(d -> {
+                    try {
+                        log.debug("Attempting to move document {} from {} to {}", document.getId(), document.getPath(), newPath);
+                        Files.move(Path.of(d.getPath()), Path.of(newPath), StandardCopyOption.REPLACE_EXISTING);
+
+                        log.debug("Successfully moved document {} from {} to {}", document.getId(), document.getPath(), newPath);
+                        d.setPath(newPath);
+                        return documentRepository.save(d);
+                    } catch (Exception e) {
+                        log.debug("Unable to move document {} from {} to {}", document.getId(), document.getPath(), newPath);
+                        return null;
+                    }
+                }).orElseThrow(() -> new RuntimeException("Document not found"));
     }
 
 
-    public Document move(int id, String newPath) {
-        Optional<Document> optionalDocument = findById(id);
-        if (optionalDocument.isEmpty()) {
-            throw new RuntimeException("Il documento non esiste nel database");
-        }
 
-        Document document = optionalDocument.get();
-        String currentPath = document.getPath();
-
-        try {
-            Files.move(Paths.get(currentPath), Path.of(newPath), StandardCopyOption.REPLACE_EXISTING);
-
-            document.setPath(newPath);
-
-            return documentRepository.save(document);
-        } catch (IOException e) {
-            throw new RuntimeException("Errore durante lo spostamento del documento", e);
-        }
+    public Document move(int id, String path) {
+        return documentRepository.findById(id).map(document -> move(document, path)).
+                orElseThrow(() -> new RuntimeException("Document not found"));
     }
+
 
 
 }
