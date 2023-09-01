@@ -1,9 +1,16 @@
 package com.scai.filemanager_wave2_v02.service;
 
+import com.scai.filemanager_wave2_v02.configuration.FileConfig;
 import com.scai.filemanager_wave2_v02.model.Document;
+import com.scai.filemanager_wave2_v02.profiles.ProfileBasedStrategy;
+import com.scai.filemanager_wave2_v02.profiles.ProfileBasedStrategy.GeneratorStrategy;
 import com.scai.filemanager_wave2_v02.repository.DocumentRepository;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -14,15 +21,23 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
+@EnableConfigurationProperties(FileConfig.class)
 public class DocumentService {
 
     private final DocumentRepository documentRepository;
+    private final GeneratorStrategy<String, String> generater;
 
+    @PostConstruct
+    public void init() {
+        log.info("generator initialized");
+        generater.apply("test");
+    }
 
     public String read(int id) {
+        generater.apply("");
         Optional<Document> byId = findById(id);
         if(byId.isEmpty()) {
             throw new RuntimeException("Errore: il documento non è presente nel database");
@@ -79,7 +94,6 @@ public class DocumentService {
         if(Files.exists(Path.of(document.getPath()))) {
             try {
                 Files.delete(Path.of(document.getPath()));
-                System.out.println("Il file precedentemente istanziato con il medesimo nome, è stato sostituio dal nuovo file");
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -143,6 +157,7 @@ public class DocumentService {
 
 
     public Document move(Document document, String newPath) {
+        log.info("Doc: {}", document);
         return documentRepository.findDocumentByPath(document.getPath())
                 .map(d -> {
                     try {
