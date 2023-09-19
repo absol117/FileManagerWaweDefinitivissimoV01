@@ -1,22 +1,16 @@
 package com.scai.filemanager_wave2_v02.service;
 
-import com.scai.filemanager_wave2_v02.configuration.FileConfig;
 import com.scai.filemanager_wave2_v02.model.Document;
-import com.scai.filemanager_wave2_v02.profiles.ProfileBasedStrategy;
 import com.scai.filemanager_wave2_v02.profiles.ProfileBasedStrategy.GeneratorStrategy;
 import com.scai.filemanager_wave2_v02.repository.DocumentRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Optional;
@@ -24,20 +18,19 @@ import java.util.Optional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@EnableConfigurationProperties(FileConfig.class)
 public class DocumentService {
 
     private final DocumentRepository documentRepository;
-    private final GeneratorStrategy<String, String> generater;
+    private final GeneratorStrategy<String, String> generator;
 
     @PostConstruct
     public void init() {
         log.info("generator initialized");
-        generater.apply("test");
+        generator.apply("test");
     }
 
     public String read(int id) {
-        generater.apply("");
+        generator.apply("");
         Optional<Document> byId = findById(id);
         if(byId.isEmpty()) {
             throw new RuntimeException("Errore: il documento non è presente nel database");
@@ -107,9 +100,6 @@ public class DocumentService {
 
     }
 
-
-
-
     public boolean delete(int id) {
         if(findById(id).isEmpty()) {
             throw new RuntimeException("Il documento non ha un id associato nel database");
@@ -124,8 +114,8 @@ public class DocumentService {
         }
     }
 
-    public Document update(int id, Document newDocumnet) {
-        if(newDocumnet.getPath().isBlank()) {
+    public Document update(int id, Document doc) {
+        if(doc.getPath().isBlank()) {
             throw new RuntimeException("il path è vuoto brody");
         }
 
@@ -140,9 +130,9 @@ public class DocumentService {
             throw new RuntimeException(e);
         }
 
-        document1.setName(newDocumnet.getName());
-        document1.setTags(newDocumnet.getTags());
-        document1.setPath(newDocumnet.getPath());
+        document1.setName(doc.getName());
+        document1.setTags(doc.getTags());
+        document1.setPath(doc.getPath());
 
         documentRepository.save(document1);
 
